@@ -4,10 +4,10 @@
  * Runs the LLM ↔ tool execution cycle as an EventStream.
  */
 
-import { EventStream } from "../../05-llm-streaming/src/event-stream.js"
-import type { Provider, Context, AssistantMessage, Message, ToolCall } from "../../05-llm-streaming/src/ai.js"
-import type { ToolDefinition, ToolResult } from "../../06-tool-calling/src/tools.js"
-import { executeTool } from "../../06-tool-calling/src/tools.js"
+import { EventStream } from "./event-stream.js"
+import type { Provider, Context, AssistantMessage, Message, ToolCall } from "./ai.js"
+import type { ToolDefinition, ToolResult } from "./tools.js"
+import { executeTool } from "./tools.js"
 
 // ---------------------------------------------------------------------------
 // Event types

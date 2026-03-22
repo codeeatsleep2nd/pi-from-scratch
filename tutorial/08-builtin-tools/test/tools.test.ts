@@ -48,7 +48,7 @@ describe("readTool", () => {
 		await writeFile(path, lines.join("\n"))
 		const result = await readTool.execute({ path })
 		expect(result.isError).toBe(false)
-		expect(result.content).toContain("truncated")
+		expect(result.content).toContain("showing lines 1–3000")
 	})
 
 	it("respects offset and limit", async () => {

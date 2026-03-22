@@ -8,15 +8,15 @@
  * Requires: ANTHROPIC_API_KEY or OPENAI_API_KEY
  */
 
-import { DifferentialRenderer } from "../../02-differential-renderer/src/renderer.js"
-import { parseKey, matchesKey } from "../../03-key-input/src/keys.js"
-import { agentLoop, type ConversationMessage } from "../../07-agent-loop/src/agent-loop.js"
-import { readTool } from "../../08-builtin-tools/src/tools/read.js"
-import { writeTool } from "../../08-builtin-tools/src/tools/write.js"
-import { bashTool } from "../../08-builtin-tools/src/tools/bash.js"
-import { editTool } from "../../08-builtin-tools/src/tools/edit.js"
-import { SessionManager } from "../../09-session-persistence/src/session.js"
-import type { Provider } from "../../05-llm-streaming/src/ai.js"
+import { DifferentialRenderer } from "./renderer.js"
+import { parseKey, matchesKey } from "./keys.js"
+import { agentLoop, type ConversationMessage } from "./agent-loop.js"
+import { readTool } from "./tools/read.js"
+import { writeTool } from "./tools/write.js"
+import { bashTool } from "./tools/bash.js"
+import { editTool } from "./tools/edit.js"
+import { SessionManager } from "./session.js"
+import type { Provider } from "./ai.js"
 import { join } from "path"
 import { homedir } from "os"
 
@@ -281,11 +281,11 @@ async function main(): Promise<void> {
 	let provider: Provider
 
 	if (process.env["ANTHROPIC_API_KEY"]) {
-		const { AnthropicProvider } = await import("../../05-llm-streaming/src/providers/anthropic.js")
+		const { AnthropicProvider } = await import("./providers/anthropic.js")
 		provider = new AnthropicProvider()
 		state.status = "Using Anthropic. Type a message and press Enter."
 	} else if (process.env["OPENAI_API_KEY"]) {
-		const { OpenAIProvider } = await import("../../05-llm-streaming/src/providers/openai.js")
+		const { OpenAIProvider } = await import("./providers/openai.js")
 		provider = new OpenAIProvider()
 		state.status = "Using OpenAI. Type a message and press Enter."
 	} else {

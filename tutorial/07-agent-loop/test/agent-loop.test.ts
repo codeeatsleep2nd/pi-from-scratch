@@ -5,9 +5,9 @@
  */
 import { describe, it, expect, vi } from "vitest"
 import { agentLoop, type ConversationMessage } from "../src/agent-loop.js"
-import type { Provider, Context, AssistantMessageEventStream, AssistantMessage } from "../../05-llm-streaming/src/ai.js"
-import { AssistantMessageEventStream as Stream } from "../../05-llm-streaming/src/ai.js"
-import type { ToolDefinition } from "../../06-tool-calling/src/tools.js"
+import type { Provider, Context, AssistantMessageEventStream, AssistantMessage } from "../src/ai.js"
+import { AssistantMessageEventStream as Stream } from "../src/ai.js"
+import type { ToolDefinition } from "../src/tools.js"
 
 // ---------------------------------------------------------------------------
 // Mock provider builder

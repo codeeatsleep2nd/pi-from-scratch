@@ -6,7 +6,7 @@
 
 import { readFile, access } from "fs/promises"
 import { extname } from "path"
-import type { ToolDefinition, ToolResult } from "../../../06-tool-calling/src/tools.js"
+import type { ToolDefinition, ToolResult } from "../tools.js"
 
 const MAX_BYTES = 100 * 1024 // 100KB
 const MAX_LINES = 3000

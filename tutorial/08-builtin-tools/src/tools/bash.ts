@@ -5,7 +5,7 @@
  */
 
 import { spawn } from "child_process"
-import type { ToolDefinition, ToolResult } from "../../../06-tool-calling/src/tools.js"
+import type { ToolDefinition, ToolResult } from "../tools.js"
 
 const MAX_OUTPUT_BYTES = 50 * 1024 // 50KB per stream
 const DEFAULT_TIMEOUT_MS = 30_000 // 30 seconds

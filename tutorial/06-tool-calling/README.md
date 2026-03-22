@@ -39,13 +39,56 @@ Create the following files in your `pi-from-scratch/` project:
 | `src/tools.ts` | Create — copy from [`src/tools.ts`](./src/tools.ts) |
 | `test/tools.test.ts` | Create — copy from [`test/tools.test.ts`](./test/tools.test.ts) |
 
+## No demo to run
+
+This chapter defines infrastructure, not behaviour. `tools.ts` is a library — its functions only do something when called by other code. There is no `npx tsx src/tools.ts` demo because there is nothing to show in isolation. The real payoff comes in chapter 07, where the agent loop calls `executeTool` on every tool call the LLM makes.
+
 ## The code
 
 `src/tools.ts` contains:
 - `ToolDefinition<T>` — typed tool interface
 - `validateArgs(schema, args)` — JSON Schema validation
 - `executeTool(tool, args, signal)` — validate + execute wrapper
-- `echoTool`, `calculatorTool` — example tools for testing
+- `echoTool`, `calculatorTool` — example tools used in the tests
+
+## What the tests verify
+
+The tests are split into four groups:
+
+**`validateArgs`** — checks the JSON Schema validator before any tool is called:
+
+| Test | What it proves |
+|------|---------------|
+| passes valid args | normal case works |
+| fails when required field is missing | LLM forgot a required argument |
+| fails when type is wrong | LLM sent `"10"` instead of `10` |
+| allows optional fields to be absent | optional fields don't need to be present |
+| allows unknown properties | extra fields from the LLM don't crash anything |
+| fails when args is not an object / array | LLM sent the wrong shape entirely |
+| validates enum constraints | LLM picked a value not in the allowed list |
+
+**`executeTool`** — tests the wrapper that combines validation and execution:
+
+| Test | What it proves |
+|------|---------------|
+| executes a valid tool call | happy path end-to-end |
+| returns error when required arg is missing | validation failure produces `{ isError: true }`, not a thrown exception |
+| catches and wraps exceptions from execute() | if the tool itself throws, `executeTool` catches it and returns `{ isError: true }` instead of crashing the agent |
+| passes AbortSignal to execute() | the cancellation signal reaches the tool |
+| calls onUpdate with partial results | progress callbacks work |
+
+**`echoTool` / `calculatorTool`** — smoke tests for the two example tools included in `tools.ts`.
+
+### The key contract
+
+The most important behaviour is **"catches and wraps exceptions"**:
+
+```
+tool.execute() throws  →  executeTool returns { isError: true, content: "..." }
+                           never re-throws
+```
+
+In the agent loop, tool results are sent back to the LLM as messages. If a tool crashes with an uncaught exception the whole agent dies. By catching inside `executeTool`, the LLM can see the error and decide what to do — retry with different arguments, try a different tool, or tell the user.
 
 ## Debugging tips
 

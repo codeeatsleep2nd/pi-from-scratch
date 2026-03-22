@@ -6,7 +6,7 @@
 
 import { readFile, writeFile } from "fs/promises"
 import { access } from "fs/promises"
-import type { ToolDefinition, ToolResult } from "../../../06-tool-calling/src/tools.js"
+import type { ToolDefinition, ToolResult } from "../tools.js"
 
 interface EditArgs {
 	path: string

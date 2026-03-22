@@ -6,7 +6,7 @@
 
 import { writeFile, mkdir } from "fs/promises"
 import { dirname } from "path"
-import type { ToolDefinition, ToolResult } from "../../../06-tool-calling/src/tools.js"
+import type { ToolDefinition, ToolResult } from "../tools.js"
 
 interface WriteArgs {
 	path: string

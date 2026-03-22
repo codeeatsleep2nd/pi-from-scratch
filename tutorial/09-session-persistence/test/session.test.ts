@@ -6,7 +6,7 @@ import { mkdtemp, rm } from "fs/promises"
 import { join } from "path"
 import { tmpdir } from "os"
 import { SessionManager, type Session } from "../src/session.js"
-import type { ConversationMessage } from "../../07-agent-loop/src/agent-loop.js"
+import type { ConversationMessage } from "../src/agent-loop.js"
 
 let tmpDir: string
 let manager: SessionManager

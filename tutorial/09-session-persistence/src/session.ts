@@ -7,7 +7,7 @@
 import { readFile, writeFile, mkdir, readdir, unlink } from "fs/promises"
 import { join, dirname } from "path"
 import { randomBytes } from "crypto"
-import type { ConversationMessage } from "../../07-agent-loop/src/agent-loop.js"
+import type { ConversationMessage } from "./agent-loop.js"
 
 // ---------------------------------------------------------------------------
 // Types
