@@ -63,12 +63,45 @@ Create the following files in your `pi-from-scratch/` project:
 | `src/agent-loop.ts` | Create — copy from [`src/agent-loop.ts`](./src/agent-loop.ts) |
 | `test/agent-loop.test.ts` | Create — copy from [`test/agent-loop.test.ts`](./test/agent-loop.test.ts) |
 
+## No demo to run
+
+Like chapter 06, `agent-loop.ts` is infrastructure that sits between the provider (chapter 05) and the UI (chapter 10). Running it directly would require a real provider and a prompt hardcoded in a demo block — not worth it when the tests below exercise the same logic without needing an API key.
+
 ## The code
 
 `src/agent-loop.ts` contains:
 - `agentLoop(messages, context, config)` — returns an EventStream of AgentEvents
 - `AgentLoopConfig` — tools, provider, max turns
 - `AgentEvent` — all event types
+
+## What the tests verify
+
+All tests use a **mock provider** instead of a real LLM. The mock takes a list of predefined `AssistantMessage` responses and returns them one at a time. Each call to `stream()` pops the next response from the queue and immediately pushes it into an `AssistantMessageEventStream`. This means the tests run instantly with no API calls.
+
+| Test | What it proves |
+|------|---------------|
+| emits agent_start and agent_end | the loop wraps every run in bookend events the UI can listen for |
+| returns final messages via .result() | you can skip event iteration and just `await loop.result()` to get the full conversation |
+| emits message_update for streamed text | text tokens from the provider reach the UI as `message_update` events |
+| executes tools and continues the loop | when `stopReason === "toolUse"`, the loop runs the tool, appends the result to messages, and calls the LLM again — the mock queue has two responses to match these two turns |
+| handles unknown tool gracefully | if the LLM calls a tool that isn't registered, the loop returns `{ isError: true, content: "not found" }` rather than crashing |
+| respects maxTurns | a mock that always responds with a tool call would loop forever — `maxTurns: 3` ensures the loop stops after 3 iterations |
+| respects AbortSignal | aborting the controller before the slow mock resolves causes the loop to exit cleanly rather than hang |
+| emits turn_start and turn_end | each round trip (LLM call + optional tool execution) is bracketed by turn events |
+
+### The two-response test in detail
+
+The "executes tools" test is the most important — it simulates the full LLM ↔ tool cycle:
+
+```
+Mock response 1: stopReason="toolUse", toolCalls=[{name:"echo", args:{message:"test value"}}]
+  → loop calls echoTool.execute({message:"test value"}) → "test value"
+  → loop appends tool result to messages
+Mock response 2: stopReason="stop", content="The echo returned: test value"
+  → loop ends
+```
+
+The test then asserts that `tool_execution_start` and `tool_execution_end` events were emitted and that the final message list has at least 3 entries: user message, assistant tool-use response, and tool result message.
 
 ## Debugging tips
 

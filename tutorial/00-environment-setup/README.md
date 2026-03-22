@@ -137,7 +137,23 @@ What each option does:
 | `"types": ["node"]` | Explicitly include Node.js type definitions, giving TypeScript knowledge of `process`, `Buffer`, `__dirname`, and built-in modules like `fs`, `path`, `os`, and `child_process`. Without this, those globals may not be recognised, especially in monorepo or mixed-target setups. |
 | `"include"` | Only compile files under `src/` and `test/` — ignores `node_modules`, `dist`, etc. |
 
-## 5. Set your API key
+## 5. Create vitest.config.ts
+
+Create `vitest.config.ts` in `pi-from-scratch/`:
+
+```typescript
+import { defineConfig } from "vitest/config"
+
+export default defineConfig({
+  test: {
+    exclude: ["**/node_modules/**", "**/tutorial/**"],
+  },
+})
+```
+
+This tells vitest to only run tests in your `test/` directory. Without this, if you keep the tutorial folder inside your project for reference, vitest will try to run the tutorial's own test files — which import from paths that only work inside the tutorial's directory structure, not yours.
+
+## 6. Set your API key
 
 ### Get an API key
 
@@ -169,7 +185,7 @@ This sets an environment variable for the current terminal session only. If you 
 
 Tests that call real LLM APIs are skipped when the env var is absent, so the rest of the tutorial works without an API key.
 
-## 6. Verify setup
+## 7. Verify setup
 
 ```bash
 mkdir src
