@@ -56,7 +56,82 @@ Create the following files in your `pi-from-scratch/` project:
 
 Note: `src/tools/` is a new subdirectory — create it before adding the tool files.
 
+## No demo to run
+
+These four tools are called by the agent loop, not by the user directly. Running `bash.ts` would just exit silently because there is no top-level code. The interesting behaviour only appears when an LLM decides to call a tool — which happens in chapter 10.
+
 ## The code
+
+`src/tools/` contains four files, one per tool. Each exports a single `ToolDefinition` constant and has no dependencies on other chapters except for the `ToolDefinition` and `ToolResult` types from `src/tools.ts`.
+
+## What the tests verify
+
+Unlike chapters 06 and 07, these tests **touch the real filesystem and run real shell commands**. They use a temporary directory so nothing outside your project is affected.
+
+### How the temporary directory works
+
+At the top of the test file:
+
+```typescript
+let tmpDir: string
+
+beforeEach(async () => {
+  tmpDir = await mkdtemp(join(tmpdir(), "pi-tutorial-test-"))
+})
+
+afterEach(async () => {
+  await rm(tmpDir, { recursive: true, force: true })
+})
+```
+
+Before each test, `mkdtemp` creates a fresh directory with a random suffix under your OS's temp folder (e.g. `/tmp/pi-tutorial-test-a3f9x2/`). After each test, `rm` deletes it entirely. Every test gets a clean slate and leaves no files behind.
+
+To see where it lands while tests are running, add a `console.log(tmpDir)` inside `beforeEach`, then run the tests. You can then `ls` that path between tests to inspect the files the tools created.
+
+### Test breakdown
+
+**`readTool`**
+
+| Test | What it does |
+|------|-------------|
+| reads a simple text file | writes a file with `fs.writeFile`, calls `readTool.execute`, checks content comes back |
+| returns error for missing file | passes a path that doesn't exist, expects `{ isError: true }` |
+| truncates files with more than 3000 lines | writes a 4000-line file, checks the result mentions `showing lines 1–3000` |
+| respects offset and limit | writes 5 lines, reads lines 2–3, verifies lines 1 and 4 are absent |
+| returns error for binary files | writes 4 ZIP magic bytes, expects `{ isError: true }` |
+| returns metadata for image files | writes 4 PNG magic bytes, expects `{ isError: false }` with `Image file` in content |
+
+**`writeTool`**
+
+| Test | What it does |
+|------|-------------|
+| creates a new file | calls `writeTool.execute`, checks the success message |
+| overwrites an existing file | writes "Old content", overwrites with "New content", reads back to confirm |
+| creates parent directories | passes `nested/deep/file.txt`, verifies directories are created automatically |
+| reports file size in result | writes 1024 bytes, checks the result mentions KB or bytes |
+
+**`editTool`**
+
+| Test | What it does |
+|------|-------------|
+| replaces an exact string | writes a 3-line file, replaces one line, reads back to confirm |
+| returns error when string not found | search string not present → `{ isError: true }` |
+| returns error when string appears multiple times | `"foo"` appears twice → `{ isError: true }` with count in message |
+| returns error when file does not exist | missing file → `{ isError: true }` |
+| handles multi-line replacements | `oldString` spans 3 lines including a function body |
+
+**`bashTool`**
+
+| Test | What it does |
+|------|-------------|
+| runs a simple command | `echo 'hello bash'` → output in content |
+| captures stderr | `echo ... >&2; exit 1` → `{ isError: true }` with stderr in content |
+| returns non-zero exit as error | `exit 42` → `{ isError: true }` with exit code in message |
+| respects timeout | `sleep 10` with 200ms timeout → `{ isError: true }` with "timed out" |
+| runs in specified working directory | `pwd` in a subdir → output contains subdir path |
+| handles AbortSignal | abort the controller immediately after starting `sleep 10` → `{ isError: true }` |
+
+The timeout and AbortSignal tests have an explicit `5000` ms vitest timeout so the test runner itself doesn't hang if the implementation is broken.
 
 ## Debugging tips
 
