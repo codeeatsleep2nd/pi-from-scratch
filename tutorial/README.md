@@ -1,3 +1,5 @@
+# WIP: DO NOT READ
+
 # Building a Terminal AI Coding Agent from Scratch
 
 This tutorial walks you through building the `pi` coding agent step by step — from raw terminal I/O to a fully interactive, streaming, tool-calling AI agent. Each step introduces one concept, has minimal working code, and includes tests you can run.

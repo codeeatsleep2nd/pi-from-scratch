@@ -57,8 +57,10 @@ export class AnthropicProvider implements Provider {
 					tools,
 				}, { signal: options.signal })
 
-				// Prevent unhandled rejection if the stream is aborted before finalMessage() is awaited
-				sdkStream.finalMessage().catch(() => {})
+				// Register abort/error listeners synchronously so the SDK doesn't create
+				// an unhandled rejection when the stream is aborted (the SDK checks listener
+				// count before calling Promise.reject — this prevents the crash)
+				sdkStream.on("abort", () => {}).on("error", () => {})
 
 				for await (const event of sdkStream) {
 
