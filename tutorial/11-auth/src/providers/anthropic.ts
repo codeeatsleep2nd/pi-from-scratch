@@ -49,19 +49,18 @@ export class AnthropicProvider implements Provider {
 				let inputTokens = 0
 				let outputTokens = 0
 
-				const sdkStream = await this.client.messages.stream({
+				const sdkStream = this.client.messages.stream({
 					model: this.model,
 					max_tokens: options.maxTokens ?? 4096,
 					system: context.systemPrompt,
 					messages,
 					tools,
-				})
+				}, { signal: options.signal })
+
+				// Prevent unhandled rejection if the stream is aborted before finalMessage() is awaited
+				sdkStream.finalMessage().catch(() => {})
 
 				for await (const event of sdkStream) {
-					if (options.signal?.aborted) {
-						sdkStream.abort()
-						break
-					}
 
 					if (event.type === "content_block_delta") {
 						if (event.delta.type === "text_delta" && event.delta.text) {
@@ -73,6 +72,11 @@ export class AnthropicProvider implements Provider {
 					} else if (event.type === "message_start") {
 						if (event.message.usage) inputTokens = event.message.usage.input_tokens
 					}
+				}
+
+				// If the signal was aborted, stop here cleanly
+				if (options.signal?.aborted) {
+					throw new Error("Aborted")
 				}
 
 				const finalMessage = await sdkStream.finalMessage()

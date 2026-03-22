@@ -200,7 +200,7 @@ export function agentLoop(initialMessages: ConversationMessage[], config: AgentL
 			eventStream.push({ type: "agent_end", messages })
 		} catch (err) {
 			const error = err instanceof Error ? err : new Error(String(err))
-			eventStream.push({ type: "error", error })
+			eventStream.fail(error)
 		}
 	})()
 
