@@ -59,8 +59,52 @@ Create the following files in your `pi-from-scratch/` project:
 ```bash
 # Run from pi-from-scratch/
 npx tsx src/components.ts
-# Renders a sample layout to stdout
 ```
+
+The demo renders a static layout to stdout and exits. No interaction — this chapter is about the rendering primitives, not live input. You should see output like this (width adjusts to your terminal):
+
+```
+Component System Demo
+
+┌─Example Box──────────────────────────────────────────────────────────────┐
+│This text is inside a box.                                                │
+│It wraps at the box inner width.                                          │
+│                                                                          │
+│Green text works too.                                                     │
+└──────────────────────────────────────────────────────────────────────────┘
+
+Left column          Right column
+Second line          Second line
+```
+
+**What to check in each component:**
+
+**`Text`**
+- Plain strings render as a single line.
+- Strings with `\n` render as multiple lines.
+- Long strings wrap at word boundaries when they exceed the available width. Try narrowing your terminal to see wrapping kick in.
+- ANSI color codes (e.g. `\x1b[32m`) are visible as colors, not as raw escape characters.
+
+**`Box`**
+- Top border: `┌─Example Box──────...──┐` — title appears after the first `─`, remaining width filled with `─`.
+- Bottom border: `└──────────...──────────┘`
+- Side borders: `│` on both edges of every content line.
+- Content lines are padded with spaces to fill the inner width so the right `│` aligns.
+- The box border is rendered in gray (`\x1b[90m`) because `style: "\x1b[90m"` was passed.
+
+**`VStack`**
+- Children stack top to bottom with no gaps.
+- Total line count equals the sum of all children's line counts.
+
+**`HStack`**
+- Left and right columns sit side by side on the same lines.
+- If one column has fewer lines than the other, the shorter side is padded with empty lines so the layout stays aligned.
+
+**`Spacer`**
+- Produces one blank line between the title and the box, and between the box and the HStack.
+
+**`Container`**
+- Renders all children in the order they were added — acts as the root of the layout tree.
 
 ## Debugging tips
 
