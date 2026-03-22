@@ -52,7 +52,7 @@ Create the following files in your `pi-from-scratch/` project:
 | `src/tools/write.ts` | Create — copy from [`src/tools/write.ts`](./src/tools/write.ts) |
 | `src/tools/bash.ts` | Create — copy from [`src/tools/bash.ts`](./src/tools/bash.ts) |
 | `src/tools/edit.ts` | Create — copy from [`src/tools/edit.ts`](./src/tools/edit.ts) |
-| `test/builtin-tools.test.ts` | Create — copy from [`test/tools.test.ts`](./test/tools.test.ts) |
+| `test/builtin-tools.test.ts` | Create — copy from [`test/builtin-tools.test.ts`](./test/builtin-tools.test.ts) |
 
 Note: `src/tools/` is a new subdirectory — create it before adding the tool files.
 
