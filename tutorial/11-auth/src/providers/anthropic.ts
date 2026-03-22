@@ -1,7 +1,10 @@
 /**
- * Step 05 — Anthropic Provider
+ * Chapter 11 — Anthropic Provider (updated)
  *
- * Wraps the @anthropic-ai/sdk to implement the Provider interface.
+ * Same as Chapter 05, but the constructor now accepts an optional pre-built
+ * Anthropic client. When provided, it skips creating its own client (and
+ * therefore doesn't need ANTHROPIC_API_KEY to be set). This lets the auth
+ * module inject OAuth clients transparently.
  */
 
 import Anthropic from "@anthropic-ai/sdk"
@@ -11,40 +14,42 @@ import { AssistantMessageEventStream } from "../ai.js"
 export class AnthropicProvider implements Provider {
 	name = "anthropic"
 	private model: string
+	private client: Anthropic
 
-	constructor(model = "claude-haiku-4-5-20251001") {
+	/**
+	 * @param model   Model ID (default: claude-haiku-4-5-20251001)
+	 * @param client  Optional pre-built Anthropic client. When omitted the
+	 *                provider reads ANTHROPIC_API_KEY from the environment.
+	 */
+	constructor(model = "claude-haiku-4-5-20251001", client?: Anthropic) {
 		this.model = model
+		this.client = client ?? new Anthropic({ apiKey: process.env["ANTHROPIC_API_KEY"] })
 	}
 
 	async stream(context: Context, options: StreamOptions = {}): Promise<AssistantMessageEventStream> {
-		const client = new Anthropic({ apiKey: process.env["ANTHROPIC_API_KEY"] })
 		const eventStream = new AssistantMessageEventStream()
 
-		// Start streaming in the background (don't block the caller)
 		;(async () => {
 			try {
 				eventStream.push({ type: "start" })
 
-				// Convert our generic messages to Anthropic's format
 				const messages: Anthropic.MessageParam[] = context.messages.map((m) => ({
 					role: m.role,
 					content: m.content,
 				}))
 
-				// Convert our generic tools to Anthropic's format
 				const tools: Anthropic.Tool[] | undefined = context.tools?.map((t) => ({
 					name: t.name,
 					description: t.description,
 					input_schema: t.parameters as Anthropic.Tool.InputSchema,
 				}))
 
-				// Collect full text and tool calls as they stream
 				let fullText = ""
 				const toolCalls: ToolCall[] = []
 				let inputTokens = 0
 				let outputTokens = 0
 
-				const sdkStream = await client.messages.stream({
+				const sdkStream = await this.client.messages.stream({
 					model: this.model,
 					max_tokens: options.maxTokens ?? 4096,
 					system: context.systemPrompt,
@@ -62,24 +67,14 @@ export class AnthropicProvider implements Provider {
 						if (event.delta.type === "text_delta" && event.delta.text) {
 							fullText += event.delta.text
 							eventStream.push({ type: "text", content: event.delta.text })
-						} else if (event.delta.type === "input_json_delta") {
-							// Tool call JSON arrives in pieces — buffer it
-							// (handled via content_block_stop below)
 						}
-					} else if (event.type === "content_block_stop") {
-						// If this block was a tool_use, emit the complete tool call
 					} else if (event.type === "message_delta") {
-						if (event.usage) {
-							outputTokens = event.usage.output_tokens
-						}
+						if (event.usage) outputTokens = event.usage.output_tokens
 					} else if (event.type === "message_start") {
-						if (event.message.usage) {
-							inputTokens = event.message.usage.input_tokens
-						}
+						if (event.message.usage) inputTokens = event.message.usage.input_tokens
 					}
 				}
 
-				// Get the final message to extract tool calls cleanly
 				const finalMessage = await sdkStream.finalMessage()
 
 				for (const block of finalMessage.content) {
@@ -94,8 +89,6 @@ export class AnthropicProvider implements Provider {
 					}
 				}
 
-				const stopReason = finalMessage.stop_reason === "tool_use" ? "toolUse" : "stop"
-
 				const message: AssistantMessage = {
 					role: "assistant",
 					content: fullText,
@@ -104,7 +97,7 @@ export class AnthropicProvider implements Provider {
 						inputTokens: finalMessage.usage.input_tokens,
 						outputTokens: finalMessage.usage.output_tokens,
 					},
-					stopReason: stopReason as AssistantMessage["stopReason"],
+					stopReason: finalMessage.stop_reason === "tool_use" ? "toolUse" : "stop",
 				}
 
 				eventStream.push({ type: "done", message })

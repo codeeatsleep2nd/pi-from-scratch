@@ -85,16 +85,41 @@ Note: `src/providers/` is a new subdirectory — create it before adding the pro
 ## How to run the demo
 
 ```bash
-# Run from pi-from-scratch/ — requires ANTHROPIC_API_KEY or OPENAI_API_KEY
+# Run from pi-from-scratch/ — requires ANTHROPIC_API_KEY or OPENAI_API_KEY with credits loaded
 npx tsx src/ai.ts
 ```
 
+> **Note:** An API key alone is not enough — your account also needs credits loaded. A Claude Pro or ChatGPT subscription does **not** include API credits.
+> - Add Anthropic credits: https://console.anthropic.com/settings/billing
+> - Add OpenAI credits: https://platform.openai.com/settings/organization/billing
+>
+> If you have a Claude Pro/Max subscription and don't want to buy API credits, see [Chapter 11 — Auth](../11-auth/README.md) for how to use your subscription token instead.
+
+The demo sends "Say hello in exactly 3 words." to the LLM and streams the response to stdout. Expected output:
+
+```
+Streaming response:
+
+Hello there friend
+
+Done!
+Tokens: 18 in / 5 out
+```
+
+The exact wording varies between runs (LLMs are non-deterministic), but it will be three words and it will appear token by token — you should see each word print as it arrives rather than all at once.
+
+**What to observe:**
+- Text appears incrementally as the LLM streams it, not all at once at the end.
+- The `Done!` line and token counts only print after the stream ends (from the `type: "done"` event).
+- If you remove the `for await` loop and only call `await s.result()`, nothing prints during streaming — you wait for the whole response silently, then get the final message.
+
 ## Debugging tips
 
-- **Stream hangs**: The background async task may have thrown an error silently. Wrap it in a try/catch and push an error event.
-- **Events arrive out of order**: This shouldn't happen with a single provider, but if you're multiplexing streams, add a sequence number to events.
-- **Tokens arrive as null**: Some SDK versions emit events with empty delta text. Filter them: `if (delta.text) stream.push(...)`.
-- **Rate limits / errors**: Always push `{ type: "error" }` and close the stream so consumers don't hang forever.
+- **`Warning: Detected unsettled top-level await`**: This happens when `await` is used directly at the top level of an ES module file (outside any `async` function). Move all `await` calls inside an async IIFE: `;(async () => { ... })().catch(console.error)`. The demo in `src/ai.ts` already does this.
+- **Stream hangs**: The background async task in the provider may have thrown an error silently. Wrap the entire provider body in a `try/catch` and call `eventStream.fail(error)` in the catch block so consumers don't wait forever.
+- **Tokens arrive as null or empty**: Some SDK versions emit events with empty delta text. Guard with `if (delta.text) eventStream.push(...)`.
+- **Rate limits / errors**: Always call `eventStream.fail(error)` rather than letting the error escape — otherwise consumers block on `result()` indefinitely.
+- **"Your credit balance is too low"**: You have an `ANTHROPIC_API_KEY` but no credits. If you have a Claude Pro/Max subscription, see [Chapter 11 — Auth](../11-auth/README.md) — run `npx tsx src/login.ts` once to get an OAuth token, no API credits needed.
 
 ## Tests
 

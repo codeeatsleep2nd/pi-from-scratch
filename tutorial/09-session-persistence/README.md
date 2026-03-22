@@ -21,7 +21,7 @@ Without persistence, every restart loses context. With it:
     "id": "abc123",
     "created": 1700000000000,
     "name": "Fix the auth bug",
-    "model": "claude-3-5-sonnet"
+    "model": "claude-haiku-4-5-20251001"
   },
   "messages": [
     { "role": "user", "content": "Help me fix the login bug", "timestamp": 1700000001000 },
@@ -45,9 +45,9 @@ Branching creates a copy of the session at a specific point. Like `git branch`:
 - Branches are just separate JSON files with a name prefix
 
 ```
-~/.pi/sessions/
-  abc123.json          ← main session
-  abc123.branch-try-approach-2.json  ← branch
+~/.local/share/pi-from-scratch/sessions/
+  abc123.json                            ← main session
+  abc123.branch-try-approach-2.json      ← branch
 ```
 
 ## Auto-save

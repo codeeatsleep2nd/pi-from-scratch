@@ -5,7 +5,7 @@ This tutorial walks you through building the `pi` coding agent step by step — 
 ## Prerequisites
 
 - Node.js >= 20
-- An API key from Anthropic, OpenAI, or another provider
+- An API key from Anthropic, OpenAI, or another provider (or a Claude Pro/Max subscription — see [Chapter 11](./11-auth/README.md))
 - Basic TypeScript knowledge
 
 ## Steps
@@ -23,6 +23,7 @@ This tutorial walks you through building the `pi` coding agent step by step — 
 | [08](./08-builtin-tools/README.md) | Built-in Tools | Read, write, bash, edit file tools |
 | [09](./09-session-persistence/README.md) | Session Persistence | Save/load conversations to disk |
 | [10](./10-interactive-mode/README.md) | Interactive Mode | Wire everything into a live TUI |
+| [11](./11-auth/README.md) | Auth | API key vs OAuth token — use Claude Pro/Max without API credits |
 
 ## How to read this tutorial
 

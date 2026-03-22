@@ -146,7 +146,14 @@ You need at least one of these:
 - **Anthropic (Claude)** — sign up at https://console.anthropic.com, go to **API Keys**, and create a new key. It starts with `sk-ant-`.
 - **OpenAI (GPT)** — sign up at https://platform.openai.com, go to **API Keys**, and create a new key. It starts with `sk-`.
 
-Both require a credit card for pay-as-you-go billing. The tutorial uses small models (`claude-3-5-haiku` / `gpt-4o-mini`) so costs are minimal — a full run through all steps typically costs less than $0.10.
+**Important:** an API key alone is not enough — you also need to add credits to your account. A Claude Pro or ChatGPT Plus subscription does **not** include API credits; the API is billed separately.
+
+- Anthropic API credits: https://console.anthropic.com/settings/billing
+- OpenAI API credits: https://platform.openai.com/settings/organization/billing
+
+The tutorial uses small models (`claude-haiku-4-5` / `gpt-4o-mini`) so costs are minimal — a full run through all chapters typically costs less than $0.10.
+
+If you already subscribe to Claude Pro/Max and prefer not to buy API credits, [Chapter 11 — Auth](../11-auth/README.md) covers how to run a one-time login that saves an OAuth token to disk — no API credits needed.
 
 ### Set the key in your terminal
 
@@ -198,8 +205,9 @@ pi-from-scratch/
 │   ├── components.ts      ← chapter 04
 │   ├── event-stream.ts    ← chapter 05
 │   ├── ai.ts              ← chapter 05
+│   ├── auth.ts            ← chapter 11 (optional — API key or OAuth)
 │   ├── providers/
-│   │   ├── anthropic.ts   ← chapter 05
+│   │   ├── anthropic.ts   ← chapter 05 (updated in chapter 11)
 │   │   └── openai.ts      ← chapter 05
 │   ├── tools.ts           ← chapter 06
 │   ├── agent-loop.ts      ← chapter 07
@@ -219,7 +227,8 @@ pi-from-scratch/
     ├── tools.test.ts      ← chapter 06
     ├── agent-loop.test.ts ← chapter 07
     ├── builtin-tools.test.ts ← chapter 08
-    └── session.test.ts    ← chapter 09
+    ├── session.test.ts    ← chapter 09
+    └── auth.test.ts       ← chapter 11 (optional)
 ```
 
 ---
